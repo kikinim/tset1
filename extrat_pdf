@@ -1,0 +1,72 @@
+import os
+from pdf2image import convert_from_path
+import pytesseract
+from nltk.tokenize import sent_tokenize
+from transformers import AutoTokenizer, AutoModel
+import torch
+import faiss
+import numpy as np
+import nltk
+
+nltk.download("punkt")
+
+# ✅ Tesseract 경로 (수동으로 설정 필요)
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+# ✅ 임베딩 모델 설정 (bge-small-en)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model_name = "BAAI/bge-small-en"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModel.from_pretrained(model_name).to(device)
+
+
+# ✅ 1. PDF → 이미지 → 텍스트 추출
+def extract_sentences_from_image_pdf(pdf_path):
+    images = convert_from_path(pdf_path, dpi=300)
+    all_text = ""
+    for img in images:
+        text = pytesseract.image_to_string(img, lang="eng")  # or "kor+eng"
+        all_text += text + "\n"
+    return sent_tokenize(all_text)
+
+
+# ✅ 2. 문장 리스트 → 임베딩
+def embed_sentences(sentences):
+    inputs = tokenizer(sentences, padding=True, truncation=True, return_tensors="pt").to(device)
+    with torch.no_grad():
+        outputs = model(**inputs)
+        embeddings = outputs.last_hidden_state[:, 0]  # CLS token
+    return embeddings.cpu().numpy()
+
+
+# ✅ 3. FAISS 저장
+def save_faiss_index(embeddings, sentences, out_dir="vector_index"):
+    os.makedirs(out_dir, exist_ok=True)
+    dim = embeddings.shape[1]
+    index = faiss.IndexFlatL2(dim)
+    index.add(embeddings)
+    faiss.write_index(index, os.path.join(out_dir, "faiss.index"))
+
+    with open(os.path.join(out_dir, "sentences.txt"), "w", encoding="utf-8") as f:
+        for s in sentences:
+            f.write(s.strip() + "\n")
+
+    print(f"✅ 저장 완료: {out_dir}/faiss.index + sentences.txt")
+
+
+# ✅ 실행
+def run(pdf_path):
+    print("📄 PDF → 문장 추출 중...")
+    sentences = extract_sentences_from_image_pdf(pdf_path)
+    print(f"✅ 문장 수: {len(sentences)}")
+
+    print("🔗 벡터화 중...")
+    embeddings = embed_sentences(sentences)
+
+    print("💾 FAISS 인덱스 저장 중...")
+    save_faiss_index(embeddings, sentences)
+
+
+# 예시 실행
+if __name__ == "__main__":
+    run("../data/pdfs/part1.pdf")  # <- 여기에 OCR 대상 PDF 경로 넣기
