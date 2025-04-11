@@ -1,0 +1,15 @@
+Error - 3:21:28 PM] API Usage Examples LSP client: couldn't create connection to server.
+Error: spawn EBUSY
+    at ChildProcess.spawn (node:internal/child_process:420:11)
+    at spawn (node:child_process:796:9)
+    at fork (node:child_process:173:10)
+    at Object.e.fork (node:electron/js2c/node_init:2:18231)
+    at c:\Users\mgoog1.ko\.vscode\extensions\visualstudioexptteam.intellicode-api-usage-examples-0.2.9\dist\extension.js:2:466900
+    at new Promise (<anonymous>)
+    at c:\Users\mgoog1.ko\.vscode\extensions\visualstudioexptteam.intellicode-api-usage-examples-0.2.9\dist\extension.js:2:466475
+    at v.createConnection (c:\Users\mgoog1.ko\.vscode\extensions\visualstudioexptteam.intellicode-api-usage-examples-0.2.9\dist\extension.js:2:306855)
+    at v.start (c:\Users\mgoog1.ko\.vscode\extensions\visualstudioexptteam.intellicode-api-usage-examples-0.2.9\dist\extension.js:2:297370)
+    at e.activate (c:\Users\mgoog1.ko\.vscode\extensions\visualstudioexptteam.intellicode-api-usage-examples-0.2.9\dist\extension.js:2:1508205)
+    at cw.n (file:///c:/Users/mgoog1.ko/AppData/Local/Programs/Microsoft%20VS%20Code/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:111:13415)
+    at cw.m (file:///c:/Users/mgoog1.ko/AppData/Local/Programs/Microsoft%20VS%20Code/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:111:13378)
+    at cw.l (file:///c:/Users/mgoog1.ko/AppData/Local/Programs/Microsoft%20VS%20Code/resources/app/out/vs/workbench/api/node/extensionHostProcess.js:111:12834)
