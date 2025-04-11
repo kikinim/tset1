@@ -1,0 +1,93 @@
+>> pip install llama-cpp-python --force-reinstall --no-cache-dir
+>> 
+Looking in indexes: http://repo.samsungds.net/artifactory/api/pypi/pypi-remote/simple, http://nexus.adpaas.cloud.samsungds.net/repository/dataservice-pypi/simple
+Looking in links: http://repo.samsungds.net/artifactory/api/pypi/pypi-torch/torch_stable.html
+Collecting llama-cpp-python
+  Downloading http://repo.samsungds.net/artifactory/api/pypi/pypi-remote/packages/packages/95/4e/da912ff2bf9bf855c86e8b1ae9fe1eaedf47d75a66728896b533901c4610/llama_cpp_python-0.3.8.tar.gz (67.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 67.3/67.3 MB 116.0 MB/s eta 0:00:00
+  Installing build dependencies ... done
+  Getting requirements to build wheel ... done
+  Installing backend dependencies ... done
+  Preparing metadata (pyproject.toml) ... done
+Collecting typing-extensions>=4.5.0 (from llama-cpp-python)
+  Downloading http://repo.samsungds.net/artifactory/api/pypi/pypi-remote/packages/packages/8b/54/b1ae86c0973cc6f0210b53d508ca3641fb6d0c56823f288d108bc7ab3cc8/typing_extensions-4.13.2-py3-none-any.whl (45 kB)
+Collecting numpy>=1.20.0 (from llama-cpp-python)
+  Downloading http://repo.samsungds.net/artifactory/api/pypi/pypi-remote/packages/packages/01/e3/cb04627bc2a1638948bc13e818df26495aa18e20d5be1ed95ab2b10b6847/numpy-2.2.4-cp310-cp310-win_amd64.whl (12.9 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.9/12.9 MB 101.5 MB/s eta 0:00:00
+Collecting diskcache>=5.6.1 (from llama-cpp-python)
+  Downloading http://repo.samsungds.net/artifactory/api/pypi/pypi-remote/packages/packages/3f/27/4570e78fc0bf5ea0ca45eb1de3818a23787af9b390c0b0a0033a1b8236f9/diskcache-5.6.3-py3-none-any.whl (45 kB)
+Collecting jinja2>=2.11.3 (from llama-cpp-python)
+  Downloading http://repo.samsungds.net/artifactory/api/pypi/pypi-remote/packages/packages/62/a1/3d680cbfd5f4b8f15abc1d571870c5fc3e594bb582bc3b64ea099db13e56/jinja2-3.1.6-py3-none-any.whl (134 kB)
+Collecting MarkupSafe>=2.0 (from jinja2>=2.11.3->llama-cpp-python)
+  Downloading http://repo.samsungds.net/artifactory/api/pypi/pypi-remote/packages/packages/44/06/e7175d06dd6e9172d4a69a72592cb3f7a996a9c396eee29082826449bbc3/MarkupSafe-3.0.2-cp310-cp310-win_amd64.whl (15 kB)
+Building wheels for collected packages: llama-cpp-python
+  Building wheel for llama-cpp-python (pyproject.toml) ... error
+  error: subprocess-exited-with-error
+
+  × Building wheel for llama-cpp-python (pyproject.toml) did not run successfully.
+  │ exit code: 1
+  ╰─> [58 lines of output]
+      *** scikit-build-core 0.11.1 using CMake 4.0.0 (wheel)
+      *** Configuring CMake...
+      2025-04-11 11:38:25,021 - scikit_build_core - WARNING - Can't find a Python library, got libdir=None, ldlibrary=None, multiarch=None, masd=None
+      loading initial cache file C:\Users\mgoog1.ko\AppData\Local\Temp\tmpedozj70l\build\CMakeInit.txt
+      -- Building for: Visual Studio 17 2022
+      -- Selecting Windows SDK version 10.0.22621.0 to target Windows 10.0.22631.
+      -- The C compiler identification is MSVC 19.43.34809.0
+      -- The CXX compiler identification is MSVC 19.43.34809.0
+      -- Detecting C compiler ABI info
+      -- Detecting C compiler ABI info - done
+      -- Check for working C compiler: C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64/cl.exe - skipped
+      -- Detecting C compile features
+      -- Detecting C compile features - done
+      -- Detecting CXX compiler ABI info
+      -- Detecting CXX compiler ABI info - done
+      -- Check for working CXX compiler: C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.43.34808/bin/Hostx64/x64/cl.exe - skipped
+      -- Detecting CXX compile features
+      -- Detecting CXX compile features - done
+      -- Found Git: C:/Program Files/Git/cmd/git.exe (found version "2.43.0.windows.1")
+      -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+      -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+      -- Looking for pthread_create in pthreads
+      -- Looking for pthread_create in pthreads - not found
+      -- Looking for pthread_create in pthread
+      -- Looking for pthread_create in pthread - not found
+      -- Found Threads: TRUE
+      -- Warning: ccache not found - consider installing it for faster compilation or disable this warning with GGML_CCACHE=OFF
+      -- CMAKE_SYSTEM_PROCESSOR: AMD64
+      -- CMAKE_GENERATOR_PLATFORM: x64
+      -- Including CPU backend
+      -- Found OpenMP_C: -openmp (found version "2.0")
+      -- Found OpenMP_CXX: -openmp (found version "2.0")
+      -- Found OpenMP: TRUE (found version "2.0")
+      -- x86 detected
+      -- Performing Test HAS_AVX_1
+      -- Performing Test HAS_AVX_1 - Success
+      -- Performing Test HAS_AVX2_1
+      -- Performing Test HAS_AVX2_1 - Success
+      -- Performing Test HAS_FMA_1
+      -- Performing Test HAS_FMA_1 - Success
+      -- Performing Test HAS_AVX512_1
+      -- Performing Test HAS_AVX512_1 - Success
+      -- Adding CPU backend variant ggml-cpu: /arch:AVX512 GGML_AVX512
+      -- Found CUDAToolkit: C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v12.6/include (found version "12.6.68")
+      -- CUDA Toolkit found
+      -- Using CUDA architectures: native
+      CMake Error at C:/Users/mgoog1.ko/AppData/Local/Temp/pip-build-env-sapno4v_/normal/Lib/site-packages/cmake/data/share/cmake-4.0/Modules/CMakeDetermineCompilerId.cmake:616 (message):
+        No CUDA toolset found.
+      Call Stack (most recent call first):
+        C:/Users/mgoog1.ko/AppData/Local/Temp/pip-build-env-sapno4v_/normal/Lib/site-packages/cmake/data/share/cmake-4.0/Modules/CMakeDetermineCompilerId.cmake:8 (CMAKE_DETERMINE_COMPILER_ID_BUILD)
+        C:/Users/mgoog1.ko/AppData/Local/Temp/pip-build-env-sapno4v_/normal/Lib/site-packages/cmake/data/share/cmake-4.0/Modules/CMakeDetermineCompilerId.cmake:53 (__determine_compiler_id_test)
+        C:/Users/mgoog1.ko/AppData/Local/Temp/pip-build-env-sapno4v_/normal/Lib/site-packages/cmake/data/share/cmake-4.0/Modules/CMakeDetermineCUDACompiler.cmake:131 (CMAKE_DETERMINE_COMPILER_ID)
+        vendor/llama.cpp/ggml/src/ggml-cuda/CMakeLists.txt:25 (enable_language)
+
+
+      -- Configuring incomplete, errors occurred!
+
+      *** CMake configuration failed
+      [end of output]
+
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+  ERROR: Failed building wheel for llama-cpp-python
+Failed to build llama-cpp-python
+ERROR: Failed to build installable wheels for some pyproject.toml based projects (llama-cpp-python)
