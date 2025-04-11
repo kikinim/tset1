@@ -1,72 +1,472 @@
-import os
-from pdf2image import convert_from_path
-import pytesseract
-from nltk.tokenize import sent_tokenize
-from transformers import AutoTokenizer, AutoModel
-import torch
-import faiss
-import numpy as np
-import nltk
+---------------------------------------------------------------------------
+ConnectionResetError                      Traceback (most recent call last)
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\connectionpool.py:787, in HTTPConnectionPool.urlopen(self, method, url, body, headers, retries, redirect, assert_same_host, timeout, pool_timeout, release_conn, chunked, body_pos, preload_content, decode_content, **response_kw)
+    786 # Make the request on the HTTPConnection object
+--> 787 response = self._make_request(
+    788     conn,
+    789     method,
+    790     url,
+    791     timeout=timeout_obj,
+    792     body=body,
+    793     headers=headers,
+    794     chunked=chunked,
+    795     retries=retries,
+    796     response_conn=response_conn,
+    797     preload_content=preload_content,
+    798     decode_content=decode_content,
+    799     **response_kw,
+    800 )
+    802 # Everything went great!
 
-nltk.download("punkt")
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\connectionpool.py:488, in HTTPConnectionPool._make_request(self, conn, method, url, body, headers, retries, timeout, chunked, response_conn, preload_content, decode_content, enforce_content_length)
+    487         new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)
+--> 488     raise new_e
+    490 # conn.request() calls http.client.*.request, not the method in
+    491 # urllib3.request. It also calls makefile (recv) on the socket.
 
-# ✅ Tesseract 경로 (수동으로 설정 필요)
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\connectionpool.py:464, in HTTPConnectionPool._make_request(self, conn, method, url, body, headers, retries, timeout, chunked, response_conn, preload_content, decode_content, enforce_content_length)
+    463 try:
+--> 464     self._validate_conn(conn)
+    465 except (SocketTimeout, BaseSSLError) as e:
 
-# ✅ 임베딩 모델 설정 (bge-small-en)
-device = "cuda" if torch.cuda.is_available() else "cpu"
-model_name = "BAAI/bge-small-en"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = AutoModel.from_pretrained(model_name).to(device)
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\connectionpool.py:1093, in HTTPSConnectionPool._validate_conn(self, conn)
+   1092 if conn.is_closed:
+-> 1093     conn.connect()
+   1095 # TODO revise this, see https://github.com/urllib3/urllib3/issues/2791
 
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\connection.py:741, in HTTPSConnection.connect(self)
+    739 server_hostname_rm_dot = server_hostname.rstrip(".")
+--> 741 sock_and_verified = _ssl_wrap_socket_and_match_hostname(
+    742     sock=sock,
+    743     cert_reqs=self.cert_reqs,
+    744     ssl_version=self.ssl_version,
+    745     ssl_minimum_version=self.ssl_minimum_version,
+    746     ssl_maximum_version=self.ssl_maximum_version,
+    747     ca_certs=self.ca_certs,
+    748     ca_cert_dir=self.ca_cert_dir,
+    749     ca_cert_data=self.ca_cert_data,
+    750     cert_file=self.cert_file,
+    751     key_file=self.key_file,
+    752     key_password=self.key_password,
+    753     server_hostname=server_hostname_rm_dot,
+    754     ssl_context=self.ssl_context,
+    755     tls_in_tls=tls_in_tls,
+    756     assert_hostname=self.assert_hostname,
+    757     assert_fingerprint=self.assert_fingerprint,
+    758 )
+    759 self.sock = sock_and_verified.socket
 
-# ✅ 1. PDF → 이미지 → 텍스트 추출
-def extract_sentences_from_image_pdf(pdf_path):
-    images = convert_from_path(pdf_path, dpi=300)
-    all_text = ""
-    for img in images:
-        text = pytesseract.image_to_string(img, lang="eng")  # or "kor+eng"
-        all_text += text + "\n"
-    return sent_tokenize(all_text)
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\connection.py:920, in _ssl_wrap_socket_and_match_hostname(sock, cert_reqs, ssl_version, ssl_minimum_version, ssl_maximum_version, cert_file, key_file, key_password, ca_certs, ca_cert_dir, ca_cert_data, assert_hostname, assert_fingerprint, server_hostname, ssl_context, tls_in_tls)
+    918         server_hostname = normalized
+--> 920 ssl_sock = ssl_wrap_socket(
+    921     sock=sock,
+    922     keyfile=key_file,
+    923     certfile=cert_file,
+    924     key_password=key_password,
+    925     ca_certs=ca_certs,
+    926     ca_cert_dir=ca_cert_dir,
+    927     ca_cert_data=ca_cert_data,
+    928     server_hostname=server_hostname,
+    929     ssl_context=context,
+    930     tls_in_tls=tls_in_tls,
+    931 )
+    933 try:
 
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\util\ssl_.py:460, in ssl_wrap_socket(sock, keyfile, certfile, cert_reqs, ca_certs, server_hostname, ssl_version, ciphers, ssl_context, ca_cert_dir, key_password, ca_cert_data, tls_in_tls)
+    458 context.set_alpn_protocols(ALPN_PROTOCOLS)
+--> 460 ssl_sock = _ssl_wrap_socket_impl(sock, context, tls_in_tls, server_hostname)
+    461 return ssl_sock
 
-# ✅ 2. 문장 리스트 → 임베딩
-def embed_sentences(sentences):
-    inputs = tokenizer(sentences, padding=True, truncation=True, return_tensors="pt").to(device)
-    with torch.no_grad():
-        outputs = model(**inputs)
-        embeddings = outputs.last_hidden_state[:, 0]  # CLS token
-    return embeddings.cpu().numpy()
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\util\ssl_.py:504, in _ssl_wrap_socket_impl(sock, ssl_context, tls_in_tls, server_hostname)
+    502     return SSLTransport(sock, ssl_context, server_hostname)
+--> 504 return ssl_context.wrap_socket(sock, server_hostname=server_hostname)
 
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\ssl.py:513, in SSLContext.wrap_socket(self, sock, server_side, do_handshake_on_connect, suppress_ragged_eofs, server_hostname, session)
+    507 def wrap_socket(self, sock, server_side=False,
+    508                 do_handshake_on_connect=True,
+    509                 suppress_ragged_eofs=True,
+    510                 server_hostname=None, session=None):
+    511     # SSLSocket class handles server_hostname encoding before it calls
+    512     # ctx._wrap_socket()
+--> 513     return self.sslsocket_class._create(
+    514         sock=sock,
+    515         server_side=server_side,
+    516         do_handshake_on_connect=do_handshake_on_connect,
+    517         suppress_ragged_eofs=suppress_ragged_eofs,
+    518         server_hostname=server_hostname,
+    519         context=self,
+    520         session=session
+    521     )
 
-# ✅ 3. FAISS 저장
-def save_faiss_index(embeddings, sentences, out_dir="vector_index"):
-    os.makedirs(out_dir, exist_ok=True)
-    dim = embeddings.shape[1]
-    index = faiss.IndexFlatL2(dim)
-    index.add(embeddings)
-    faiss.write_index(index, os.path.join(out_dir, "faiss.index"))
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\ssl.py:1071, in SSLSocket._create(cls, sock, server_side, do_handshake_on_connect, suppress_ragged_eofs, server_hostname, context, session)
+   1070             raise ValueError("do_handshake_on_connect should not be specified for non-blocking sockets")
+-> 1071         self.do_handshake()
+   1072 except (OSError, ValueError):
 
-    with open(os.path.join(out_dir, "sentences.txt"), "w", encoding="utf-8") as f:
-        for s in sentences:
-            f.write(s.strip() + "\n")
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\ssl.py:1342, in SSLSocket.do_handshake(self, block)
+   1341         self.settimeout(None)
+-> 1342     self._sslobj.do_handshake()
+   1343 finally:
 
-    print(f"✅ 저장 완료: {out_dir}/faiss.index + sentences.txt")
+ConnectionResetError: [WinError 10054] 현재 연결은 원격 호스트에 의해 강제로 끊겼습니다
 
+During handling of the above exception, another exception occurred:
 
-# ✅ 실행
-def run(pdf_path):
-    print("📄 PDF → 문장 추출 중...")
-    sentences = extract_sentences_from_image_pdf(pdf_path)
-    print(f"✅ 문장 수: {len(sentences)}")
+ProtocolError                             Traceback (most recent call last)
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\requests\adapters.py:667, in HTTPAdapter.send(self, request, stream, timeout, verify, cert, proxies)
+    666 try:
+--> 667     resp = conn.urlopen(
+    668         method=request.method,
+    669         url=url,
+    670         body=request.body,
+    671         headers=request.headers,
+    672         redirect=False,
+    673         assert_same_host=False,
+    674         preload_content=False,
+    675         decode_content=False,
+    676         retries=self.max_retries,
+    677         timeout=timeout,
+    678         chunked=chunked,
+    679     )
+    681 except (ProtocolError, OSError) as err:
 
-    print("🔗 벡터화 중...")
-    embeddings = embed_sentences(sentences)
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\connectionpool.py:841, in HTTPConnectionPool.urlopen(self, method, url, body, headers, retries, redirect, assert_same_host, timeout, pool_timeout, release_conn, chunked, body_pos, preload_content, decode_content, **response_kw)
+    839     new_e = ProtocolError("Connection aborted.", new_e)
+--> 841 retries = retries.increment(
+    842     method, url, error=new_e, _pool=self, _stacktrace=sys.exc_info()[2]
+    843 )
+    844 retries.sleep()
 
-    print("💾 FAISS 인덱스 저장 중...")
-    save_faiss_index(embeddings, sentences)
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\util\retry.py:474, in Retry.increment(self, method, url, response, error, _pool, _stacktrace)
+    473 if read is False or method is None or not self._is_method_retryable(method):
+--> 474     raise reraise(type(error), error, _stacktrace)
+    475 elif read is not None:
 
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\util\util.py:38, in reraise(tp, value, tb)
+     37 if value.__traceback__ is not tb:
+---> 38     raise value.with_traceback(tb)
+     39 raise value
 
-# 예시 실행
-if __name__ == "__main__":
-    run("../data/pdfs/part1.pdf")  # <- 여기에 OCR 대상 PDF 경로 넣기
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\connectionpool.py:787, in HTTPConnectionPool.urlopen(self, method, url, body, headers, retries, redirect, assert_same_host, timeout, pool_timeout, release_conn, chunked, body_pos, preload_content, decode_content, **response_kw)
+    786 # Make the request on the HTTPConnection object
+--> 787 response = self._make_request(
+    788     conn,
+    789     method,
+    790     url,
+    791     timeout=timeout_obj,
+    792     body=body,
+    793     headers=headers,
+    794     chunked=chunked,
+    795     retries=retries,
+    796     response_conn=response_conn,
+    797     preload_content=preload_content,
+    798     decode_content=decode_content,
+    799     **response_kw,
+    800 )
+    802 # Everything went great!
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\connectionpool.py:488, in HTTPConnectionPool._make_request(self, conn, method, url, body, headers, retries, timeout, chunked, response_conn, preload_content, decode_content, enforce_content_length)
+    487         new_e = _wrap_proxy_error(new_e, conn.proxy.scheme)
+--> 488     raise new_e
+    490 # conn.request() calls http.client.*.request, not the method in
+    491 # urllib3.request. It also calls makefile (recv) on the socket.
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\connectionpool.py:464, in HTTPConnectionPool._make_request(self, conn, method, url, body, headers, retries, timeout, chunked, response_conn, preload_content, decode_content, enforce_content_length)
+    463 try:
+--> 464     self._validate_conn(conn)
+    465 except (SocketTimeout, BaseSSLError) as e:
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\connectionpool.py:1093, in HTTPSConnectionPool._validate_conn(self, conn)
+   1092 if conn.is_closed:
+-> 1093     conn.connect()
+   1095 # TODO revise this, see https://github.com/urllib3/urllib3/issues/2791
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\connection.py:741, in HTTPSConnection.connect(self)
+    739 server_hostname_rm_dot = server_hostname.rstrip(".")
+--> 741 sock_and_verified = _ssl_wrap_socket_and_match_hostname(
+    742     sock=sock,
+    743     cert_reqs=self.cert_reqs,
+    744     ssl_version=self.ssl_version,
+    745     ssl_minimum_version=self.ssl_minimum_version,
+    746     ssl_maximum_version=self.ssl_maximum_version,
+    747     ca_certs=self.ca_certs,
+    748     ca_cert_dir=self.ca_cert_dir,
+    749     ca_cert_data=self.ca_cert_data,
+    750     cert_file=self.cert_file,
+    751     key_file=self.key_file,
+    752     key_password=self.key_password,
+    753     server_hostname=server_hostname_rm_dot,
+    754     ssl_context=self.ssl_context,
+    755     tls_in_tls=tls_in_tls,
+    756     assert_hostname=self.assert_hostname,
+    757     assert_fingerprint=self.assert_fingerprint,
+    758 )
+    759 self.sock = sock_and_verified.socket
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\connection.py:920, in _ssl_wrap_socket_and_match_hostname(sock, cert_reqs, ssl_version, ssl_minimum_version, ssl_maximum_version, cert_file, key_file, key_password, ca_certs, ca_cert_dir, ca_cert_data, assert_hostname, assert_fingerprint, server_hostname, ssl_context, tls_in_tls)
+    918         server_hostname = normalized
+--> 920 ssl_sock = ssl_wrap_socket(
+    921     sock=sock,
+    922     keyfile=key_file,
+    923     certfile=cert_file,
+    924     key_password=key_password,
+    925     ca_certs=ca_certs,
+    926     ca_cert_dir=ca_cert_dir,
+    927     ca_cert_data=ca_cert_data,
+    928     server_hostname=server_hostname,
+    929     ssl_context=context,
+    930     tls_in_tls=tls_in_tls,
+    931 )
+    933 try:
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\util\ssl_.py:460, in ssl_wrap_socket(sock, keyfile, certfile, cert_reqs, ca_certs, server_hostname, ssl_version, ciphers, ssl_context, ca_cert_dir, key_password, ca_cert_data, tls_in_tls)
+    458 context.set_alpn_protocols(ALPN_PROTOCOLS)
+--> 460 ssl_sock = _ssl_wrap_socket_impl(sock, context, tls_in_tls, server_hostname)
+    461 return ssl_sock
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\urllib3\util\ssl_.py:504, in _ssl_wrap_socket_impl(sock, ssl_context, tls_in_tls, server_hostname)
+    502     return SSLTransport(sock, ssl_context, server_hostname)
+--> 504 return ssl_context.wrap_socket(sock, server_hostname=server_hostname)
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\ssl.py:513, in SSLContext.wrap_socket(self, sock, server_side, do_handshake_on_connect, suppress_ragged_eofs, server_hostname, session)
+    507 def wrap_socket(self, sock, server_side=False,
+    508                 do_handshake_on_connect=True,
+    509                 suppress_ragged_eofs=True,
+    510                 server_hostname=None, session=None):
+    511     # SSLSocket class handles server_hostname encoding before it calls
+    512     # ctx._wrap_socket()
+--> 513     return self.sslsocket_class._create(
+    514         sock=sock,
+    515         server_side=server_side,
+    516         do_handshake_on_connect=do_handshake_on_connect,
+    517         suppress_ragged_eofs=suppress_ragged_eofs,
+    518         server_hostname=server_hostname,
+    519         context=self,
+    520         session=session
+    521     )
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\ssl.py:1071, in SSLSocket._create(cls, sock, server_side, do_handshake_on_connect, suppress_ragged_eofs, server_hostname, context, session)
+   1070             raise ValueError("do_handshake_on_connect should not be specified for non-blocking sockets")
+-> 1071         self.do_handshake()
+   1072 except (OSError, ValueError):
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\ssl.py:1342, in SSLSocket.do_handshake(self, block)
+   1341         self.settimeout(None)
+-> 1342     self._sslobj.do_handshake()
+   1343 finally:
+
+ProtocolError: ('Connection aborted.', ConnectionResetError(10054, '현재 연결은 원격 호스트에 의해 강제로 끊겼습니다', None, 10054, None))
+
+During handling of the above exception, another exception occurred:
+
+ConnectionError                           Traceback (most recent call last)
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\huggingface_hub\file_download.py:1484, in _get_metadata_or_catch_error(repo_id, filename, repo_type, revision, endpoint, proxies, etag_timeout, headers, token, local_files_only, relative_filename, storage_folder)
+   1483 try:
+-> 1484     metadata = get_hf_file_metadata(
+   1485         url=url, proxies=proxies, timeout=etag_timeout, headers=headers, token=token
+   1486     )
+   1487 except EntryNotFoundError as http_error:
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\huggingface_hub\utils\_validators.py:114, in validate_hf_hub_args.<locals>._inner_fn(*args, **kwargs)
+    112     kwargs = smoothly_deprecate_use_auth_token(fn_name=fn.__name__, has_token=has_token, kwargs=kwargs)
+--> 114 return fn(*args, **kwargs)
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\huggingface_hub\file_download.py:1401, in get_hf_file_metadata(url, token, proxies, timeout, library_name, library_version, user_agent, headers)
+   1400 # Retrieve metadata
+-> 1401 r = _request_wrapper(
+   1402     method="HEAD",
+   1403     url=url,
+   1404     headers=hf_headers,
+   1405     allow_redirects=False,
+   1406     follow_relative_redirects=True,
+   1407     proxies=proxies,
+   1408     timeout=timeout,
+   1409 )
+   1410 hf_raise_for_status(r)
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\huggingface_hub\file_download.py:285, in _request_wrapper(method, url, follow_relative_redirects, **params)
+    284 if follow_relative_redirects:
+--> 285     response = _request_wrapper(
+    286         method=method,
+    287         url=url,
+    288         follow_relative_redirects=False,
+    289         **params,
+    290     )
+    292     # If redirection, we redirect only relative paths.
+    293     # This is useful in case of a renamed repository.
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\huggingface_hub\file_download.py:308, in _request_wrapper(method, url, follow_relative_redirects, **params)
+    307 # Perform request and return if status_code is not in the retry list.
+--> 308 response = get_session().request(method=method, url=url, **params)
+    309 hf_raise_for_status(response)
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\requests\sessions.py:589, in Session.request(self, method, url, params, data, headers, cookies, files, auth, timeout, allow_redirects, proxies, hooks, stream, verify, cert, json)
+    588 send_kwargs.update(settings)
+--> 589 resp = self.send(prep, **send_kwargs)
+    591 return resp
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\requests\sessions.py:703, in Session.send(self, request, **kwargs)
+    702 # Send the request
+--> 703 r = adapter.send(request, **kwargs)
+    705 # Total elapsed time of the request (approximately)
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\huggingface_hub\utils\_http.py:96, in UniqueRequestIdAdapter.send(self, request, *args, **kwargs)
+     95 try:
+---> 96     return super().send(request, *args, **kwargs)
+     97 except requests.RequestException as e:
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\requests\adapters.py:682, in HTTPAdapter.send(self, request, stream, timeout, verify, cert, proxies)
+    681 except (ProtocolError, OSError) as err:
+--> 682     raise ConnectionError(err, request=request)
+    684 except MaxRetryError as e:
+
+ConnectionError: (ProtocolError('Connection aborted.', ConnectionResetError(10054, '현재 연결은 원격 호스트에 의해 강제로 끊겼습니다', None, 10054, None)), '(Request ID: d2a7c437-9c7c-4681-b5f4-bbf3f994080a)')
+
+The above exception was the direct cause of the following exception:
+
+LocalEntryNotFoundError                   Traceback (most recent call last)
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\transformers\utils\hub.py:424, in cached_files(path_or_repo_id, filenames, cache_dir, force_download, resume_download, proxies, token, revision, local_files_only, subfolder, repo_type, user_agent, _raise_exceptions_for_gated_repo, _raise_exceptions_for_missing_entries, _raise_exceptions_for_connection_errors, _commit_hash, **deprecated_kwargs)
+    422 if len(full_filenames) == 1:
+    423     # This is slightly better for only 1 file
+--> 424     hf_hub_download(
+    425         path_or_repo_id,
+    426         filenames[0],
+    427         subfolder=None if len(subfolder) == 0 else subfolder,
+    428         repo_type=repo_type,
+    429         revision=revision,
+    430         cache_dir=cache_dir,
+    431         user_agent=user_agent,
+    432         force_download=force_download,
+    433         proxies=proxies,
+    434         resume_download=resume_download,
+    435         token=token,
+    436         local_files_only=local_files_only,
+    437     )
+    438 else:
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\huggingface_hub\utils\_validators.py:114, in validate_hf_hub_args.<locals>._inner_fn(*args, **kwargs)
+    112     kwargs = smoothly_deprecate_use_auth_token(fn_name=fn.__name__, has_token=has_token, kwargs=kwargs)
+--> 114 return fn(*args, **kwargs)
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\huggingface_hub\file_download.py:961, in hf_hub_download(repo_id, filename, subfolder, repo_type, revision, library_name, library_version, cache_dir, local_dir, user_agent, force_download, proxies, etag_timeout, token, local_files_only, headers, endpoint, resume_download, force_filename, local_dir_use_symlinks)
+    960 else:
+--> 961     return _hf_hub_download_to_cache_dir(
+    962         # Destination
+    963         cache_dir=cache_dir,
+    964         # File info
+    965         repo_id=repo_id,
+    966         filename=filename,
+    967         repo_type=repo_type,
+    968         revision=revision,
+    969         # HTTP info
+    970         endpoint=endpoint,
+    971         etag_timeout=etag_timeout,
+    972         headers=hf_headers,
+    973         proxies=proxies,
+    974         token=token,
+    975         # Additional options
+    976         local_files_only=local_files_only,
+    977         force_download=force_download,
+    978     )
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\huggingface_hub\file_download.py:1068, in _hf_hub_download_to_cache_dir(cache_dir, repo_id, filename, repo_type, revision, endpoint, etag_timeout, headers, proxies, token, local_files_only, force_download)
+   1067     # Otherwise, raise appropriate error
+-> 1068     _raise_on_head_call_error(head_call_error, force_download, local_files_only)
+   1070 # From now on, etag, commit_hash, url and size are not None.
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\huggingface_hub\file_download.py:1599, in _raise_on_head_call_error(head_call_error, force_download, local_files_only)
+   1597 else:
+   1598     # Otherwise: most likely a connection issue or Hub downtime => let's warn the user
+-> 1599     raise LocalEntryNotFoundError(
+   1600         "An error happened while trying to locate the file on the Hub and we cannot find the requested files"
+   1601         " in the local cache. Please check your connection and try again or make sure your Internet connection"
+   1602         " is on."
+   1603     ) from head_call_error
+
+LocalEntryNotFoundError: An error happened while trying to locate the file on the Hub and we cannot find the requested files in the local cache. Please check your connection and try again or make sure your Internet connection is on.
+
+The above exception was the direct cause of the following exception:
+
+OSError                                   Traceback (most recent call last)
+Cell In[1], line 19
+     17 device = "cuda" if torch.cuda.is_available() else "cpu"
+     18 model_name = "BAAI/bge-small-en"
+---> 19 tokenizer = AutoTokenizer.from_pretrained(model_name)
+     20 model = AutoModel.from_pretrained(model_name).to(device)
+     23 # ✅ 1. PDF → 이미지 → 텍스트 추출
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\transformers\models\auto\tokenization_auto.py:965, in AutoTokenizer.from_pretrained(cls, pretrained_model_name_or_path, *inputs, **kwargs)
+    963         config = AutoConfig.for_model(**config_dict)
+    964     else:
+--> 965         config = AutoConfig.from_pretrained(
+    966             pretrained_model_name_or_path, trust_remote_code=trust_remote_code, **kwargs
+    967         )
+    968 config_tokenizer_class = config.tokenizer_class
+    969 if hasattr(config, "auto_map") and "AutoTokenizer" in config.auto_map:
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\transformers\models\auto\configuration_auto.py:1112, in AutoConfig.from_pretrained(cls, pretrained_model_name_or_path, **kwargs)
+   1109 trust_remote_code = kwargs.pop("trust_remote_code", None)
+   1110 code_revision = kwargs.pop("code_revision", None)
+-> 1112 config_dict, unused_kwargs = PretrainedConfig.get_config_dict(pretrained_model_name_or_path, **kwargs)
+   1113 has_remote_code = "auto_map" in config_dict and "AutoConfig" in config_dict["auto_map"]
+   1114 has_local_code = "model_type" in config_dict and config_dict["model_type"] in CONFIG_MAPPING
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\transformers\configuration_utils.py:590, in PretrainedConfig.get_config_dict(cls, pretrained_model_name_or_path, **kwargs)
+    588 original_kwargs = copy.deepcopy(kwargs)
+    589 # Get config dict associated with the base config file
+--> 590 config_dict, kwargs = cls._get_config_dict(pretrained_model_name_or_path, **kwargs)
+    591 if config_dict is None:
+    592     return {}, kwargs
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\transformers\configuration_utils.py:649, in PretrainedConfig._get_config_dict(cls, pretrained_model_name_or_path, **kwargs)
+    645 configuration_file = kwargs.pop("_configuration_file", CONFIG_NAME) if gguf_file is None else gguf_file
+    647 try:
+    648     # Load from local folder or from cache or download from model Hub and cache
+--> 649     resolved_config_file = cached_file(
+    650         pretrained_model_name_or_path,
+    651         configuration_file,
+    652         cache_dir=cache_dir,
+    653         force_download=force_download,
+    654         proxies=proxies,
+    655         resume_download=resume_download,
+    656         local_files_only=local_files_only,
+    657         token=token,
+    658         user_agent=user_agent,
+    659         revision=revision,
+    660         subfolder=subfolder,
+    661         _commit_hash=commit_hash,
+    662     )
+    663     if resolved_config_file is None:
+    664         return None, kwargs
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\transformers\utils\hub.py:266, in cached_file(path_or_repo_id, filename, **kwargs)
+    208 def cached_file(
+    209     path_or_repo_id: Union[str, os.PathLike],
+    210     filename: str,
+    211     **kwargs,
+    212 ) -> Optional[str]:
+    213     """
+    214     Tries to locate a file in a local folder and repo, downloads and cache it if necessary.
+    215 
+   (...)
+    264     ```
+    265     """
+--> 266     file = cached_files(path_or_repo_id=path_or_repo_id, filenames=[filename], **kwargs)
+    267     file = file[0] if file is not None else file
+    268     return file
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\transformers\utils\hub.py:491, in cached_files(path_or_repo_id, filenames, cache_dir, force_download, resume_download, proxies, token, revision, local_files_only, subfolder, repo_type, user_agent, _raise_exceptions_for_gated_repo, _raise_exceptions_for_missing_entries, _raise_exceptions_for_connection_errors, _commit_hash, **deprecated_kwargs)
+    488     # Here we only raise if both flags for missing entry and connection errors are True (because it can be raised
+    489     # even when `local_files_only` is True, in which case raising for connections errors only would not make sense)
+    490     elif _raise_exceptions_for_missing_entries:
+--> 491         raise OSError(
+    492             f"We couldn't connect to '{HUGGINGFACE_CO_RESOLVE_ENDPOINT}' to load the files, and couldn't find them in the"
+    493             f" cached files.\nCheckout your internet connection or see how to run the library in offline mode at"
+    494             " 'https://huggingface.co/docs/transformers/installation#offline-mode'."
+    495         ) from e
+    496 # snapshot_download will not raise EntryNotFoundError, but hf_hub_download can. If this is the case, it will be treated
+    497 # later on anyway and re-raised if needed
+    498 elif isinstance(e, HTTPError) and not isinstance(e, EntryNotFoundError):
+
+OSError: We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.
+Checkout your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'.
