@@ -1,0 +1,31 @@
+---------------------------------------------------------------------------
+LookupError                               Traceback (most recent call last)
+Cell In[3], line 72
+     70 # 예시 실행
+     71 if __name__ == "__main__":
+---> 72     run("../data/pdfs/part1.pdf")  # <- 여기에 OCR 대상 PDF 경로 넣기
+
+Cell In[3], line 60
+     58 def run(pdf_path):
+     59     print("📄 PDF → 문장 추출 중...")
+---> 60     sentences = extract_sentences_from_image_pdf(pdf_path)
+     61     print(f"✅ 문장 수: {len(sentences)}")
+     63     print("🔗 벡터화 중...")
+
+Cell In[3], line 30
+     28     text = pytesseract.image_to_string(img, lang="eng")  # or "kor+eng"
+     29     all_text += text + "\n"
+---> 30 return sent_tokenize(all_text)
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\nltk\tokenize\__init__.py:119, in sent_tokenize(text, language)
+    109 def sent_tokenize(text, language="english"):
+    110     """
+    111     Return a sentence-tokenized copy of *text*,
+    112     using NLTK's recommended sentence tokenizer
+   (...)
+...
+    - 'D:\\nltk_data'
+    - 'E:\\nltk_data'
+    - 'C:\\nltk_data'
+**********************************************************************
+Output is truncated. View as a scrollable element or open in a text editor. Adjust cell output settings...
