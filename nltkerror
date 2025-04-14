@@ -1,0 +1,40 @@
+import nltk
+nltk.data.path.clear()  # 🔥 기존 경로 전부 초기화
+nltk.data.path.append(r"C:\nltk_data")  # 🔁 루트만 다시 추가
+
+
+from nltk.tokenize import sent_tokenize
+
+text = "Hello there. This is working now!"
+print(sent_tokenize(text))
+
+
+---------------------------------------------------------------------------
+LookupError                               Traceback (most recent call last)
+Cell In[1], line 9
+      6 from nltk.tokenize import sent_tokenize
+      8 text = "Hello there. This is working now!"
+----> 9 print(sent_tokenize(text))
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\nltk\tokenize\__init__.py:119, in sent_tokenize(text, language)
+    109 def sent_tokenize(text, language="english"):
+    110     """
+    111     Return a sentence-tokenized copy of *text*,
+    112     using NLTK's recommended sentence tokenizer
+   (...)
+    117     :param language: the model name in the Punkt corpus
+    118     """
+--> 119     tokenizer = _get_punkt_tokenizer(language)
+    120     return tokenizer.tokenize(text)
+
+File c:\Users\mgoog1.ko\AppData\Local\Programs\Python\Python310\lib\site-packages\nltk\tokenize\__init__.py:105, in _get_punkt_tokenizer(language)
+     96 @functools.lru_cache
+     97 def _get_punkt_tokenizer(language="english"):
+     98     """
+     99     A constructor for the PunktTokenizer that utilizes
+    100     a lru cache for performance.
+   (...)
+...
+
+  Searched in:
+    - 'C:\\nltk_data'
