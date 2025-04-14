@@ -1,0 +1,198 @@
+
+
+
+
+
+import os
+from pptx import Presentation
+from pptx.enum.shapes import MSO_SHAPE_TYPE
+from PIL import Image, ImageDraw
+import pytesseract
+
+# 🔧 Tesseract 경로 설정
+pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+
+# ✅ 1. PowerPoint → 이미지 (텍스트 추출 어려운 슬라이드는 OCR)
+def extract_text_from_pptx_ocr(pptx_path, output_txt_path):
+    prs = Presentation(pptx_path)
+    slide_width = prs.slide_width
+    slide_height = prs.slide_height
+
+    texts = []
+
+    for i, slide in enumerate(prs.slides):
+        print(f"📄 Slide {i+1} 처리 중...")
+
+        # 이미지 캔버스 만들기
+        img = Image.new('RGB', (slide_width // 9525, slide_height // 9525), 'white')  # EMU → px
+        draw = ImageDraw.Draw(img)
+
+        # 슬라이드 안의 텍스트 상자 추출
+        for shape in slide.shapes:
+            if shape.shape_type == MSO_SHAPE_TYPE.TEXT_BOX or shape.has_text_frame:
+                text = shape.text.strip()
+                draw.text((10, 10 + 20 * len(texts)), text, fill='black')  # 간단히 배치
+                texts.append(text)
+
+        # OCR 실행 (텍스트가 비어있는 경우나 이미지 포함 시)
+        extracted_text = pytesseract.image_to_string(img, lang="kor+eng")
+        texts.append(f"\n--- [Slide {i+1}] ---\n{extracted_text}")
+
+    # 저장
+    with open(output_txt_path, "w", encoding="utf-8") as f:
+        f.write("\n\n".join(texts))
+
+    print(f"✅ OCR 결과 저장 완료: {output_txt_path}")
+    
+if __name__ == "__main__":
+    extract_text_from_pptx_ocr(
+        pptx_path="../data/pdfs/pdftest.pptx",
+        output_txt_path="../data/pdfs/ocr_from_ppt.txt"
+    )
+
+
+
+RAG가 무엇인가요?
+
+
+--- [Slide 1] ---
+190002
+
+
+
+
+강사님 소개
+
+서지영 님
+[現] 한국 마이크로소프트 [前] 한국은행 전산정보국 [前] 한화시스템ICT
+
+
+--- [Slide 2] ---
+oxo
+(6) none fo orm oem fo eoICT
+
+
+
+
+01
+
+
+
+02
+
+
+
+03
+
+
+
+
+
+
+
+CONTENT
+
+
+
+04
+
+
+
+
+--- [Slide 3] ---
+o2
+
+03
+
+CONTENT
+
+04
+
+
+
+
+기업은 왜 챗GPT 서비스를 사용할 수 없나?
+
+
+--- [Slide 4] ---
+000901000200000)
+
+
+
+
+챗GPT 서비스의 제약
+
+
+--- [Slide 5] ---
+090109
+
+
+
+
+가 무엇인가요
+
+기업은 왜 챗GPT 서비스를 사용할 수 없나?
+챗GPT 서비스의 제약 : 사용자 데이터의 학습
+
+
+--- [Slide 6] ---
+000901080200000?
+'090109000:0890908
+
+
+
+
+가 무엇인가요
+
+기업은 왜 챗GPT 서비스를 사용할 수 없나?
+챗GPT 서비스의 제약 : 사내 데이터의 외부 유출
+
+
+--- [Slide 7] ---
+00090108020000)
+'090129908:0008808
+
+
+가 무엇인가요
+
+기업은 왜 챗GPT 서비스를 사용할 수 없나?
+챗GPT 서비스의 제약 : 보안성(안정성) 문제
+
+
+--- [Slide 8] ---
+oom
+aecPTammano
+
+
+가 무엇인가요
+
+기업은 왜 챗GPT 서비스를 사용할 수 없나?
+챗GPT 서비스의 제약 : 보안성(안정성) 문제
+
+
+
+기업 내부망
+
+
+
+퍼블릭 클라우드
+
+OpenAI API
+(해외)
+
+전용선
+
+망
+
+인터넷 연결
+
+
+--- [Slide 9] ---
+
+
+
+
+기업에서 챗GPT를 안전하게 사용할 수 있는 방법은?
+
+
+--- [Slide 10] ---
