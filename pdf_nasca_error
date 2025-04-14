@@ -1,0 +1,28 @@
+Local\Programs\Python\Python310\lib\site-packages\pdf2image\pdf2image.py:602, in pdfinfo_from_path(pdf_path, userpw, ownerpw, poppler_path, rawdates, timeout, first_page, last_page)
+    601 if "Pages" not in d:
+--> 602     raise ValueError
+    604 return d
+
+ValueError: 
+
+During handling of the above exception, another exception occurred:
+
+PDFPageCountError                         Traceback (most recent call last)
+Cell In[6], line 31
+     28 # ✅ 실행 예시
+     29 if __name__ == "__main__":
+     30     # 여기에 PDF 경로와 저장 경로 넣기
+---> 31     run_without_tokenizer("../data/pdfs/pdftest.pdf", "ocr_output_raw2.txt")
+
+Cell In[6], line 11
+      9 def run_without_tokenizer(pdf_path, save_txt_path="ocr_output_raw.txt"):
+     10     # PDF → 이미지 변환 (DPI는 150~300 사이 추천)
+---> 11     images = convert_from_path(pdf_path, dpi=300)
+     12     print(f"📄 총 {len(images)}페이지 OCR 시작")
+     14     with open(save_txt_path, "w", encoding="utf-8") as f:
+...
+Syntax Error (82): Illegal character '}'
+Syntax Error: Couldn't find trailer dictionary
+Syntax Error: Couldn't find trailer dictionary
+Syntax Error: Couldn't read xref table
+Output is truncated. View as a scrollable element or open in a text editor. Adjust cell output settings...
